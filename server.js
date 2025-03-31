@@ -1,8 +1,7 @@
 import express from "express";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import mongoose from "mongoose";
+import 'dotenv/config';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,18 +9,18 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const logFile = path.join(__dirname, "analytics.log");
+mongoose.connect(process.env.MONGO_URI);
 
-app.post("/log", (req, res) => {
-    const logEntry = {
-        action: req.body.action,
-        timestamp: new Date().toISOString(),
-    };
-    console.log(JSON.stringify(logEntry));
-    fs.appendFileSync(logFile, JSON.stringify(logEntry) + "\n");
+const logSchema = new mongoose.Schema({
+    timestamp: Date,
+    action: String,
+});
 
+const Log = mongoose.model("Log", logSchema);
+
+app.post("/log", async (req, res) => {
+    await Log.create({ timestamp: new Date(), action: req.body.action });
+    console.log("Log saved to MongoDB");
     res.json({ message: "Logged successfully!" });
 });
 
