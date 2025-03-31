@@ -24,4 +24,13 @@ app.post("/log", async (req, res) => {
     res.json({ message: "Logged successfully!" });
 });
 
+app.get("/logs", async (req, res) => {
+    try {
+        const logs = await Log.find().sort({ timestamp: -1 });
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch logs" });
+    }
+});
+
 app.listen(PORT, () => console.log(`Analytics server running on port ${PORT}`));
